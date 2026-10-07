@@ -16,7 +16,7 @@ def run_web():
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
 
-BOT_TOKEN = "8841976154:AAHnnRA63w-wlexo4Iljn9h0IcsfOon2XIw"
+BOT_TOKEN = "8841976154:AAHkD3MNP9VTIQzQgYJWM3Fox1gTd9cenbg"
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # Interactive Menu Buttons
