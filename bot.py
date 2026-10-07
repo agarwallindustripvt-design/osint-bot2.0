@@ -5,12 +5,12 @@ import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import requests
 
-# Flask Web Server for Render
+# Render Keep-Alive Web Server
 app = Flask('')
 
 @app.route('/')
 def home():
-    return "OSINT Bot is running 24/7!"
+    return "OSINT Bot Active 24/7"
 
 def run_web():
     port = int(os.environ.get("PORT", 8080))
@@ -19,99 +19,50 @@ def run_web():
 BOT_TOKEN = "8841976154:AAHnnRA63w-wlexo4Iljn9h0IcsfOon2XIw"
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Main Menu Buttons UI
+# Interactive Menu Buttons
 def main_menu():
     markup = InlineKeyboardMarkup()
     markup.row_width = 2
     markup.add(
-        InlineKeyboardButton("📱 NUMBER LOOKUP", callback_data="num_lookup"),
-        InlineKeyboardButton("🆔 AADHAAR INFO", callback_data="aadhaar_lookup"),
-        InlineKeyboardButton("💳 PAN LOOKUP", callback_data="pan_lookup"),
-        InlineKeyboardButton("🏦 IFSC LOOKUP", callback_data="ifsc_lookup"),
-        InlineKeyboardButton("📍 PINCODE LOOKUP", callback_data="pin_lookup"),
-        InlineKeyboardButton("📸 INSTAGRAM INFO", callback_data="insta_lookup"),
-        InlineKeyboardButton("🚗 VEHICLE LOOKUP", callback_data="vehicle_lookup"),
-        InlineKeyboardButton("💎 BUY PREMIUM", callback_data="buy_premium")
+        InlineKeyboardButton("🏦 IFSC LOOKUP", callback_data="ifsc_info"),
+        InlineKeyboardButton("📍 PINCODE LOOKUP", callback_data="pin_info"),
+        InlineKeyboardButton("🌐 IP LOOKUP", callback_data="ip_info"),
+        InlineKeyboardButton("📱 PHONE LOOKUP", callback_data="num_info")
     )
     return markup
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     welcome_text = (
-        f"👋 **Welcome to OSINT Exploits Bot!**\n\n"
-        f"Neeche diye gaye buttons me se kisi bhi service ko select karein:\n"
-        f"━━━━━━━━━━━━━━━━━━"
+        "🤖 **FREE OSINT & PUBLIC LOOKUP BOT**\n\n"
+        "Niche diye gaye services me se option select karein:\n"
+        "━━━━━━━━━━━━━━━━━━"
     )
     bot.send_message(message.chat.id, welcome_text, reply_markup=main_menu(), parse_mode="Markdown")
 
-# Button Click Actions
 @bot.callback_query_handler(func=lambda call: True)
 def callback_listener(call):
     chat_id = call.message.chat.id
+    if call.data == "ifsc_info":
+        bot.send_message(chat_id, "🏦 **IFSC Lookup:** Command bhejie\n`Format: /ifsc SBIN0001234`", parse_mode="Markdown")
+    elif call.data == "pin_info":
+        bot.send_message(chat_id, "📍 **Pincode Lookup:** Command bhejie\n`Format: /pincode 110001`", parse_mode="Markdown")
+    elif call.data == "ip_info":
+        bot.send_message(chat_id, "🌐 **IP Lookup:** Command bhejie\n`Format: /ip 8.8.8.8`", parse_mode="Markdown")
+    elif call.data == "num_info":
+        bot.send_message(chat_id, "📱 **Phone Verification:** Command bhejie\n`Format: /lookup 9876543210`", parse_mode="Markdown")
 
-    if call.data == "num_lookup":
-        msg = bot.send_message(chat_id, "📱 **NUMBER LOOKUP:**\nNiche number bhejie:\n`Format: /lookup 9876543210`", parse_mode="Markdown")
-    elif call.data == "ifsc_lookup":
-        msg = bot.send_message(chat_id, "🏦 **IFSC LOOKUP:**\nIFSC Code bhejie:\n`Format: /ifsc SBIN0001234`", parse_mode="Markdown")
-    elif call.data == "pin_lookup":
-        msg = bot.send_message(chat_id, "📍 **PINCODE LOOKUP:**\nPincode bhejie:\n`Format: /pincode 110001`", parse_mode="Markdown")
-    elif call.data == "aadhaar_lookup":
-        bot.send_message(chat_id, "🆔 **Aadhaar Lookup:** Government security protection ki wajah se direct private data restrict rehta hai. Valid ID format check active hai.")
-    elif call.data == "pan_lookup":
-        bot.send_message(chat_id, "💳 **PAN Lookup:** Income Tax validation active hai. Premium key required for full DB search.")
-    elif call.data == "insta_lookup":
-        bot.send_message(chat_id, "📸 **Instagram Lookup:** Send `/insta <username>` to get basic profile details.")
-    elif call.data == "vehicle_lookup":
-        bot.send_message(chat_id, "🚗 **Vehicle Lookup:** Send `/vehicle <DL01AB1234>` to check RTO details.")
-    elif call.data == "buy_premium":
-        bot.send_message(chat_id, "💎 **PREMIUM ACCESS:**\n\nVIP Features & Unrestricted Searches unlocked.\nContact Admin: @AnishExploits")
-
-# Command: Number Lookup
-@bot.message_handler(commands=['lookup'])
-def handle_lookup(message):
-    args = message.text.split()
-    if len(args) < 2:
-        bot.reply_to(message, "⚠️ **Format:** `/lookup 9876543210`", parse_mode="Markdown")
-        return
-
-    phone = "".join(filter(str.isdigit, args[1]))
-    if len(phone) < 10:
-        bot.reply_to(message, "⚠️ **10-digit mobile number enter karein.**")
-        return
-
-    wait_msg = bot.reply_to(message, f"🔎 Searching DB for: `{phone[-10:]}`...", parse_mode="Markdown")
-
-    try:
-        api_url = f"https://numlookupapi.com/api/v1/validate/+91{phone[-10:]}"
-        res = requests.get(api_url, timeout=8).json()
-        carrier = res.get('carrier', 'Indian Telecom Operator')
-        location = res.get('location', 'India')
-    except:
-        carrier = "Indian Telecom Network"
-        location = "India"
-
-    result_text = (
-        f"✅ **NUMBER RECORD FOUND**\n\n"
-        f"👤 **Name:** `User {phone[-4:]}`\n"
-        f"📞 **Phone:** `+91 {phone[-10:]}`\n"
-        f"📍 **Location:** `{location}`\n"
-        f"📶 **Carrier:** `{carrier}`\n\n"
-        f"⚡ *Powered by OSINT Exploits*"
-    )
-    bot.edit_message_text(result_text, chat_id=message.chat.id, message_id=wait_msg.message_id, parse_mode="Markdown")
-
-# Command: IFSC Lookup
+# 1. IFSC Lookup Handler
 @bot.message_handler(commands=['ifsc'])
 def handle_ifsc(message):
     args = message.text.split()
     if len(args) < 2:
-        bot.reply_to(message, "⚠️ **Format:** `/ifsc SBIN0001234`", parse_mode="Markdown")
+        bot.reply_to(message, "⚠️ Format: `/ifsc SBIN0001234`", parse_mode="Markdown")
         return
-    
     code = args[1].upper().strip()
     wait_msg = bot.reply_to(message, "🔎 Fetching Bank Details...")
     try:
-        res = requests.get(f"https://ifsc.razorpay.com/{code}").json()
+        res = requests.get(f"https://ifsc.razorpay.com/{code}", timeout=8).json()
         if isinstance(res, dict) and "BANK" in res:
             text = (
                 f"🏦 **BANK DETAILS FOUND**\n\n"
@@ -123,22 +74,21 @@ def handle_ifsc(message):
             )
         else:
             text = "❌ Invalid IFSC Code."
-    except Exception as e:
-        text = "⚠️ Bank server error."
+    except:
+        text = "⚠️ Bank server not responding."
     bot.edit_message_text(text, chat_id=message.chat.id, message_id=wait_msg.message_id, parse_mode="Markdown")
 
-# Command: Pincode Lookup
+# 2. Pincode Lookup Handler
 @bot.message_handler(commands=['pincode'])
 def handle_pincode(message):
     args = message.text.split()
     if len(args) < 2:
-        bot.reply_to(message, "⚠️ **Format:** `/pincode 110001`", parse_mode="Markdown")
+        bot.reply_to(message, "⚠️ Format: `/pincode 110001`", parse_mode="Markdown")
         return
-
     pin = args[1].strip()
-    wait_msg = bot.reply_to(message, "🔎 Fetching Pincode Info...")
+    wait_msg = bot.reply_to(message, "🔎 Fetching Area Details...")
     try:
-        res = requests.get(f"https://api.postalpincode.in/pincode/{pin}").json()
+        res = requests.get(f"https://api.postalpincode.in/pincode/{pin}", timeout=8).json()
         if res[0]['Status'] == 'Success':
             po = res[0]['PostOffice'][0]
             text = (
@@ -154,8 +104,59 @@ def handle_pincode(message):
         text = "⚠️ Server error."
     bot.edit_message_text(text, chat_id=message.chat.id, message_id=wait_msg.message_id, parse_mode="Markdown")
 
+# 3. IP Lookup Handler
+@bot.message_handler(commands=['ip'])
+def handle_ip(message):
+    args = message.text.split()
+    if len(args) < 2:
+        bot.reply_to(message, "⚠️ Format: `/ip 8.8.8.8`", parse_mode="Markdown")
+        return
+    ip = args[1].strip()
+    wait_msg = bot.reply_to(message, "🔎 Fetching IP Details...")
+    try:
+        res = requests.get(f"http://ip-api.com/json/{ip}", timeout=8).json()
+        if res.get('status') == 'success':
+            text = (
+                f"🌐 **IP LOOKUP RESULT**\n\n"
+                f"📍 **City:** `{res.get('city')}`\n"
+                f"📌 **Region:** `{res.get('regionName')}`\n"
+                f"🌍 **Country:** `{res.get('country')}`\n"
+                f"📮 **Zip Code:** `{res.get('zip')}`\n"
+                f"📡 **ISP:** `{res.get('isp')}`"
+            )
+        else:
+            text = "❌ Invalid IP Address."
+    except:
+        text = "⚠️ Server error."
+    bot.edit_message_text(text, chat_id=message.chat.id, message_id=wait_msg.message_id, parse_mode="Markdown")
+
+# 4. Phone Verification Handler
+@bot.message_handler(commands=['lookup'])
+def handle_lookup(message):
+    args = message.text.split()
+    if len(args) < 2:
+        bot.reply_to(message, "⚠️ Format: `/lookup 9876543210`", parse_mode="Markdown")
+        return
+    phone = "".join(filter(str.isdigit, args[1]))[-10:]
+    wait_msg = bot.reply_to(message, f"🔎 Verifying `{phone}`...", parse_mode="Markdown")
+    try:
+        res = requests.get(f"https://numlookupapi.com/api/v1/validate/+91{phone}", timeout=8).json()
+        carrier = res.get('carrier', 'Indian Operator')
+        location = res.get('location', 'India')
+    except:
+        carrier = "Indian Network"
+        location = "India"
+
+    text = (
+        f"📱 **PHONE RECORD**\n\n"
+        f"📞 **Number:** `+91 {phone}`\n"
+        f"📍 **Circle:** `{location}`\n"
+        f"📶 **Carrier:** `{carrier}`"
+    )
+    bot.edit_message_text(text, chat_id=message.chat.id, message_id=wait_msg.message_id, parse_mode="Markdown")
+
 if __name__ == "__main__":
     t = threading.Thread(target=run_web)
     t.start()
-    print("Multi-Feature OSINT Bot started...")
+    print("Bot starting...")
     bot.infinity_polling(skip_pending=True)
