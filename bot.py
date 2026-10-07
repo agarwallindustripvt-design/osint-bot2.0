@@ -1,8 +1,21 @@
+import os
+import threading
+from flask import Flask
 import telebot
 import requests
 
-BOT_TOKEN = "8841976154:AAEEOX6HPVBBzgAGuz1-DLLafety1AVkdf4"
+# Render web port handler
+app = Flask('')
 
+@app.route('/')
+def home():
+    return "Bot is running 24/7!"
+
+def run_web():
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
+
+BOT_TOKEN = "8841976154:AAEEOX6HPVBBzgAGuz1-DLLafety1AVkdf4"
 bot = telebot.TeleBot(BOT_TOKEN)
 
 @bot.message_handler(commands=['start'])
@@ -23,7 +36,6 @@ def handle_lookup(message):
         return
 
     query = args[1].strip()
-    # Phone number extraction
     phone = "".join(filter(str.isdigit, query))
 
     if len(phone) < 10:
@@ -36,7 +48,6 @@ def handle_lookup(message):
     wait_msg = bot.reply_to(message, f"🔎 Searching database for: `{phone}`...", parse_mode="Markdown")
 
     try:
-        # Direct lookup API call bypassing PHP host restrictions
         api_url = f"https://numlookupapi.com/api/v1/validate/+91{phone}"
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/115.0.0.0 Safari/537.36'
@@ -79,5 +90,9 @@ def handle_lookup(message):
 
     bot.edit_message_text(result_text, chat_id=message.chat.id, message_id=wait_msg.message_id, parse_mode="Markdown")
 
-print("Bot started...")
-bot.infinity_polling()
+# GitHub / Render requirements me flask install ke liye background server
+if __name__ == "__main__":
+    t = threading.Thread(target=run_web)
+    t.start()
+    print("Bot started successfully...")
+    bot.infinity_polling(skip_pending=True)
