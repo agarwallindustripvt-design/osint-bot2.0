@@ -1,47 +1,49 @@
 import telebot
 import requests
 
-# 1. BotFather se mila token (quotes ke andar)
 BOT_TOKEN = "8841976154:AAEEOX6HPVBBzgAGuz1-DLLafety1AVkdf4"
-
-# 2. Aapka API Configuration
 API_URL = "http://agarwall.infinityfree.io/OSINT/api.php"
 API_KEY = "anish-exploits"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# /start command handler
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     welcome_text = (
         "👋 **Welcome to OSINT Search Bot!**\n\n"
-        "Aap kisi bhi number ya email ki details nikal sakte hain.\n\n"
         "📌 **Usage:** `/lookup <number/email>`\n"
         "Example: `/lookup 9876543210`"
     )
     bot.reply_to(message, welcome_text, parse_mode="Markdown")
 
-# /lookup command handler
 @bot.message_handler(commands=['lookup'])
 def handle_lookup(message):
     args = message.text.split()
     
-    # Check karein user ne query di hai ya nahi
     if len(args) < 2:
-        bot.reply_to(message, "⚠️ **Sahi Format:** `/lookup <number ya email>`\nExample: `/lookup 9876543210`", parse_mode="Markdown")
+        bot.reply_to(message, "⚠️ **Sahi Format:** `/lookup 9876543210`", parse_mode="Markdown")
         return
 
     query = args[1]
     wait_msg = bot.reply_to(message, f"🔎 Searching database for: `{query}`...", parse_mode="Markdown")
 
-    # API Request
     params = {
         "key": API_KEY,
         "query": query
     }
 
+    # Custom Session to bypass security checks
+    session = requests.Session()
+    session.headers.update({
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5'
+    })
+
     try:
-        response = requests.get(API_URL, params=params, timeout=10)
+        response = session.get(API_URL, params=params, timeout=15)
+        
+        # Checking if JSON is received correctly
         data = response.json()
 
         if data.get("status"):
@@ -57,14 +59,12 @@ def handle_lookup(message):
                 f"⚡ *Powered by Anish Exploits*"
             )
         else:
-            result_text = f"❌ **Error:** {data.get('message', 'No details found for this query.')}"
+            result_text = f"❌ **Error:** {data.get('message', 'No details found.')}"
 
     except Exception as e:
-        result_text = "⚠️ **Server Error:** API connection failed!"
+        result_text = f"⚠️ **Server Error:** API connection failed!\n`{str(e)}`"
 
-    # Reply Message Update
     bot.edit_message_text(result_text, chat_id=message.chat.id, message_id=wait_msg.message_id, parse_mode="Markdown")
 
-# Bot polling start
-print("Bot started successfully...")
+print("Bot started...")
 bot.infinity_polling()
