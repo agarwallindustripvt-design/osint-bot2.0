@@ -16,7 +16,7 @@ def run_web():
 
 # Publicly shared token replace kar diya hai security ke liye
 # Telegram BotFather se new token lekar yahan paste karein
-BOT_TOKEN = "8841976154:AAEZyBGduOZS4tCb6xaWIRWZRNbptIzuP60"
+BOT_TOKEN = "8841976154:AAEX171fbRNYN1kDCd8Ep04RSEVQd9FrY0c"
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # Catch-All Handler: High-visual formatting response
